@@ -16,7 +16,7 @@
 #define MASTER_PHONE "master_phone"	
 #define MASTER_CODE "pass_code"
 #define SMS_FD "sms_fd"
-#undef TEST
+#define TEST
 #define WORK
 
 void msg_actions(void);
@@ -24,6 +24,7 @@ void poll_read(int timeout_msecs);
 char* check_ok(char*, char*);
 void read_msg();
 int extract_msg_no();
+void send_msg(void);
 
 struct pollfd fds[2]; //poll filedescriptor
 char buffer[255];  /* Input buffer */
@@ -145,7 +146,7 @@ void main(void)
 				char some_buffer[50];
 				read(phone_fd, sms_no ,sizeof(sms_no));
 				printf("%s: ", sms_no);
-				read(fds[1].fd, some_buffer ,sizeof(some_buffer));
+				send_msg();
 				//send message based on what the number says here
 			}
 		}
@@ -310,5 +311,47 @@ void msg_actions(void)
 	
 	return; 
 }
+
+void send_msg()
+{
+	int bytes_written;
+	int sms_fd = 0;
+	char buffer[3];
+	int num_comm;
+	char msg_out_buf[50];
+	
+	if ((sms_fd = open(SMS_FD, O_RDONLY)) < 0)
+	{
+		syslog(LOG_ERR, "Error cannot open sms command file");
+	}
+	else
+	{
+		read(sms_fd, buffer, sizeof(buffer));
+		num_comm = atoi(buffer);
+		switch (num_comm) //GET RID OF MAGIC NUMBER PLZ
+		{
+			case 1:
+				printf("case 1\r\n");
+				break;
+			case 2: 
+				break;
+			case 3:
+				break;
+			default:
+				break;
+		}
+	/*
+		bytes_written = write(fds[0].fd,"AT+CMGS=\"+27835783897\"\r",23);
+		poll_read(500);
+		check_ok(buffer, ">");
+		bytes_written = write(fds[0].fd,"Message here\r",13);
+		bytes_written = write(fds[0].fd,"\x1A",2);
+		poll_read(500);
+		check_ok(buffer, "OK");
+		poll_read(500); */
+	}
+	return;
+}
+
 
 

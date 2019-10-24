@@ -20,7 +20,13 @@
 /*-----------------------------------------------------------------------------
  * Public typedef, struct, union and enum definitions
  * --------------------------------------------------------------------------*/
-
+enum SMS_TX_DEF
+{
+	ALERT = 1, 
+	UL_TO,
+	CUT,
+	UNCUT
+};
 
 /*-----------------------------------------------------------------------------
  * Exported global variables (use extern keyword and g_ prefix)
