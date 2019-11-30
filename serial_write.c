@@ -9,13 +9,14 @@
 #include <sys/inotify.h>
 #include <string.h>
 #include <sys/ioctl.h>
+#include <signal.h>
 #include "serial_set.h"
 #include "poll_read.h"
 #include <syslog.h>
 
-#define MASTER_PHONE "master_phone"	
-#define MASTER_CODE "pass_code"
-#define SMS_FD "sms_fd"
+#define MASTER_PHONE "/home/pi/intellesure/master_phone"	
+#define MASTER_CODE "/home/pi/intellesure/pass_code"
+#define SMS_FD "/home/pi/intellesure/sms_tx_fd"
 #define TEST
 #define WORK
 
@@ -79,7 +80,7 @@ void main(void)
 		perror( "inotify_init" );
 	}
 	/*adding the “/tmp” directory into watch list. Here, the suggestion is to validate the 		                existence of the directory before adding into monitoring list.*/
-	wd = inotify_add_watch( sms_poll_fd, "sms_fd", IN_MODIFY );
+	wd = inotify_add_watch( sms_poll_fd, "/home/pi/intellesure/sms_tx_fd", IN_MODIFY );
 	fds[1].fd = sms_poll_fd;
 	fds[1].events = POLLIN;
 
@@ -105,7 +106,7 @@ void main(void)
 	{
 
 		//here we are going to poll UNTIL there is data to read... 
-		poll_ret = poll(fds, 2 , 0);
+		poll_ret = poll(fds, 2 , 500);
 		if (poll_ret > 0)
 		{
 			if (fds[0].revents & POLLIN)
@@ -150,11 +151,21 @@ void main(void)
 				//send message based on what the number says here
 			}
 		}
+		else if (poll_ret == EINTR)
+		{
+			printf("EXITING\r\n");
+			//we got a sig term action close up and exit
+			break;
+		}
 
 	}
 
+	printf("EXITING\r\n");
 	close(fds[0].fd );
+	close(fds[1].fd );
 	closelog();
+
+	return;
 }
 
 void poll_read(int timeout_msecs)
@@ -331,11 +342,11 @@ void send_msg()
 		switch (num_comm) //GET RID OF MAGIC NUMBER PLZ
 		{
 			case 1:
-				printf("case 1\r\n");
+				printf("case 1 received for sms send\r\n");
 				break;
-			case 2: 
+			case 2: printf("case 2 received for sms send\r\n");
 				break;
-			case 3:
+			case 3:printf("case 3 received for sms send\r\n");
 				break;
 			default:
 				break;

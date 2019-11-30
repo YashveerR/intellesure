@@ -1,6 +1,7 @@
-#!/usr/bin/env python3.6
+#!/usr/bin/env python3.7
 
 from rtlsdr import RtlSdr
+import syslog
 import math
 from threading import Timer # for watchdog timer
 import sys
@@ -58,9 +59,9 @@ def main():
           rssi = MeasureRSSI(sdr) - ampl_offset
           avg_rssi = ((9 * avg_rssi) + rssi) / 10        
           if avg_rssi > 30:
-             with open("sms_fd", "w") as sms_wr:
-                   sms_wr.write("1");
-                   logging.info('Sending SMS: Jamming Detected')
+             with open("sms_tx_fd", "w") as sms_wr:
+                   sms_wr.write("2");
+                   syslog.syslog(LOG_INFOG, 'Sending SMS: Jamming Detected')
              break #as a result of jamming detected, we send the sms and exit gracefully
           time.sleep(0.2) #here so the process does not flood the CPU
 
@@ -100,6 +101,7 @@ def MeasureRSSI(sdr):
 def service_shutdown():
     loop_flag = False
     logging.info('Exiting gracefully')
+    syslog.closelog()
     
 
 def redirect_stderr():
